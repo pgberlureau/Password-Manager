@@ -2,6 +2,7 @@
 from tkinter import *   #To create the GUI
 from string import *    #To get all the characters
 from random import randint  #To generate random numbers
+from time import sleep
 import pyperclip    #To copy password
 import hashlib  #To hash the keyword you associated with the password
 import os   #To check if you already have the passwords in file in the current directory (first launch or not)
@@ -80,7 +81,7 @@ def main(): #Main function wich start after the verification (Go to connect func
     
     def deleteEntry(entry): #Function to clear the entry after first click in
         entry.delete(0, "end")  #Clear the entry
-        entry.config(show="*")  #Change show parameters to "*" wich means "*" will replace every characters
+        entry.config(show="*", fg="black")  #Change show parameters to "*" wich means "*" will replace every characters
 
     def changeshow(entry, button):  #Function to switch show from normal("") to hide("*") and vice versa
         if entry.cget("show")=="*": #If show=="*": switch to show="" and change <entry>HideButton icon
@@ -111,7 +112,7 @@ def main(): #Main function wich start after the verification (Go to connect func
 
     generatorName = StringVar() #String to keep the generatorEntry input
 
-    generatorEntry = Entry(genEntryFrame, textvariable=generatorName, validate="focusin", validatecommand= lambda: deleteEntry(generatorEntry)) #Create the generatorEntry, validate="focusin" and validatecommand= lambda: deleteEntry(generatorEntry) means that when you will click in the entry to write it will call deleteEntry to clear generatorEntry
+    generatorEntry = Entry(genEntryFrame, textvariable=generatorName, validate="focusin", fg="grey",validatecommand= lambda: deleteEntry(generatorEntry)) #Create the generatorEntry, validate="focusin" and validatecommand= lambda: deleteEntry(generatorEntry) means that when you will click in the entry to write it will call deleteEntry to clear generatorEntry
     generatorEntry.pack(pady=5,padx=10, fill=X) #Set pady and padx to center it
     generatorEntry.insert(0, "keyword") #Put "keyword" in because it's more professional
    
@@ -129,7 +130,7 @@ def main(): #Main function wich start after the verification (Go to connect func
 
     getName = StringVar()
 
-    getEntry = Entry(getEntryFrame, textvariable=getName, validate="focusin", validatecommand= lambda: deleteEntry(getEntry))
+    getEntry = Entry(getEntryFrame, textvariable=getName, validate="focusin", fg="grey",validatecommand= lambda: deleteEntry(getEntry))
     getEntry.pack(pady=5, padx=10, fill=X)
     getEntry.insert(0, "keyword")
     
@@ -189,13 +190,26 @@ def connect(code):  #Check if its really you behind your computer (call after pr
         connectName = StringVar()   #Necessary to keep the input of the entry
         connectEntry = Entry(connectFrame, textvariable=connectName)    #Create the entry in connectFrame and specify the input will be kept in connectName
         connectEntry.pack(pady=10, fill=X)  #fill=X means the entry will takes every place it can on right and left
-                       
-        def checkingverif(code):    #Check if input is the same as the code (call by the button below)
+        
+        def delfg(entry):
+            entry.delete(0, "end")
+            entry.config(fg="black")
+
+        def checkingverif(code, entry):    #Check if input is the same as the code (call by the button below)
+            global tries
+            tries-=1
             if code==connectEntry.get():    #If it is
                 connectFrame.destroy()  #Destroy the connectFrame
                 main()  #Start the main function
-        
-        Button(connectFrame, text="ENTER", command= lambda: checkingverif(code), font=("Neufreit", 20), bg="white", fg="blue").pack(pady=10)    #Button to validate the input
+            elif tries:
+                entry.delete(0, "end")
+                entry.config(fg="red")
+                entry.insert(0, str(tries)+" tries left !")
+                entry.after(1000, lambda: delfg(entry))
+            else:
+                sys.exit()
+
+        Button(connectFrame, text="ENTER", command= lambda: checkingverif(code, connectEntry), font=("Neufreit", 20), bg="white", fg="blue").pack(pady=10)    #Button to validate the input
     else:   #If the verification hasn't been sent:
         sys.exit()  #Exit the program
 
@@ -206,5 +220,5 @@ screen.config(background="black")   #Set the screen background
 
 connectButton = Button(screen, text="CONNECT", command= lambda: connect(code), font=("Neufreit", 32), bg="white", fg="blue")    #Create connect Button wich will call connect(code) if it's pressed
 connectButton.pack(expand=YES)  #Specify the button takes all the screen
-
+tries = 3
 screen.mainloop()   #Loop the screen necessary to display the screen
